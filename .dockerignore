@@ -1,0 +1,14 @@
+.git
+.github
+*.md
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.env
+.env.*
+terraform/
+sonarqube/
+zap/
+scripts/
+docs/
