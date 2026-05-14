@@ -39,18 +39,21 @@ Pipeline FAILS              Continue to next stage
 
 ```
 ├── app/
-│   ├── app.py                  # Flask app
-│   ├── requirements.txt        # Pinned Python deps
+│   ├── __init__.py             ✅
+│   ├── app.py                  ✅ Flask app (3 routes: /, /health, /api/items)
+│   ├── requirements.txt        ✅ Pinned: flask==2.3.3, gunicorn==21.2.0, werkzeug==2.3.7
 │   └── tests/
-│       └── test_app.py         # Pytest unit tests
-├── Dockerfile                  # Multi-stage, hardened
-├── .dockerignore
-├── docker-compose.yml          # Local dev + test
+│       ├── __init__.py         ✅
+│       └── test_app.py         ✅ 5 pytest unit tests
+├── Dockerfile                  ✅ Multi-stage, non-root user, healthcheck
+├── .dockerignore               ✅
+├── docker-compose.yml          ✅ Local dev
+├── pytest.ini                  ✅ testpaths = app/tests
 ├── .github/
 │   └── workflows/
-│       └── phase-1-trivy.yml   # GitHub Actions: build + Trivy scan
+│       └── phase-1-trivy.yml   ✅ 4 jobs: test → build → trivy-scan → summary
 └── scripts/
-    └── trivy-local.sh          # Run Trivy locally for dev feedback
+    └── trivy-local.sh          ✅ Local Trivy scan script
 ```
 
 ## Security practices demonstrated (Trivy will verify these)
@@ -108,6 +111,15 @@ Pipeline FAILS              Continue to next stage
 - [ ] Pipeline **fails** when tested with a vulnerable base image
 - [ ] Pipeline **passes** with the hardened Dockerfile
 - [ ] Trivy SARIF results uploaded to GitHub Security tab
+
+## Implementation status
+
+| Item | Status |
+|------|--------|
+| All files created | ✅ Done |
+| Pushed to GitHub | ⏳ Pending (daily commit) |
+| Pipeline run validated | ⏳ Pending first push |
+| Intentional break test | ⏳ Pending |
 
 ## Next phase
 

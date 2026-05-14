@@ -35,3 +35,10 @@ Thumbs.db
 # ZAP / scan reports (generated at runtime)
 zap-report.html
 trivy-results.sarif
+
+
+
+# git 
+
+.git
+

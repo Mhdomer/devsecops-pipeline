@@ -17,8 +17,8 @@ Each phase has its own plan doc (`docs/phase-N-*.md`) written before any code.
 
 | # | Phase | Status | Doc |
 |---|-------|--------|-----|
-| 1 | Docker + Trivy (container scanning gate) | 🔲 Not started | [phase-1-docker-trivy.md](docs/phase-1-docker-trivy.md) |
-| 2 | SonarQube SAST gate | 🔲 Not started | [phase-2-sonarqube-sast.md](docs/phase-2-sonarqube-sast.md) |
+| 1 | Docker + Trivy (container scanning gate) | 🔄 In progress | [phase-1-docker-trivy.md](docs/phase-1-docker-trivy.md) |
+| 2 | SonarQube SAST gate | 🔄 In progress | [phase-2-sonarqube-sast.md](docs/phase-2-sonarqube-sast.md) |
 | 3 | OWASP ZAP DAST gate | 🔲 Not started | [phase-3-owasp-zap-dast.md](docs/phase-3-owasp-zap-dast.md) |
 | 4 | Terraform infra + EC2 deploy | 🔲 Not started | [phase-4-terraform-deploy.md](docs/phase-4-terraform-deploy.md) |
 | 5 | Full pipeline integration + polish | 🔲 Not started | [phase-5-integration.md](docs/phase-5-integration.md) |
