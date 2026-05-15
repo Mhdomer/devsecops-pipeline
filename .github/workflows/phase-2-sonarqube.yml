@@ -1,0 +1,86 @@
+name: "Phase 2 — SonarQube SAST Gate"
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+
+  # ── 1. Unit tests + coverage ───────────────────────────────────────────────
+  test-coverage:
+    name: Unit Tests + Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r app/requirements.txt pytest pytest-cov
+
+      - name: Run tests with coverage
+        run: |
+          pytest --cov=app --cov-report=xml:coverage.xml
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+          retention-days: 1
+
+  # ── 2. SonarCloud SAST — SECURITY GATE ────────────────────────────────────
+  sonarqube-scan:
+    name: "SECURITY GATE: SonarQube SAST"
+    runs-on: ubuntu-latest
+    needs: test-coverage
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0    # full history required for SonarCloud blame data
+
+      - name: Download coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+
+      - name: SonarCloud scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: .
+          args: >
+            -Dsonar.projectKey=Mhdomer_devsecops-pipeline
+            -Dsonar.organization=mhdomer
+            -Dsonar.sources=app
+            -Dsonar.tests=app/tests
+            -Dsonar.python.version=3.11
+            -Dsonar.python.coverage.reportPaths=coverage.xml
+            -Dsonar.qualitygate.wait=true
+
+  # ── 3. Summary ─────────────────────────────────────────────────────────────
+  phase-2-summary:
+    name: Phase 2 Summary
+    runs-on: ubuntu-latest
+    needs: [test-coverage, sonarqube-scan]
+    if: always()
+    steps:
+      - name: Gate result
+        run: |
+          echo "## Phase 2 Gate Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Gate | Result |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Unit Tests + Coverage | ${{ needs.test-coverage.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| SonarQube SAST | ${{ needs.sonarqube-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.sonarqube-scan.result }}" == "failure" ]; then
+            echo "**BLOCKED:** SonarQube Quality Gate failed. Deploy prevented." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          echo "**PASSED:** All Phase 2 gates cleared." >> $GITHUB_STEP_SUMMARY
