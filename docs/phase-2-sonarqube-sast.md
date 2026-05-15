@@ -111,6 +111,35 @@ directly with GitHub Actions via a token.
 - [ ] Pipeline **fails** when a security hotspot is introduced
 - [ ] Pipeline **passes** when source is clean
 
+## Files created in this phase
+
+```
+├── sonarqube/
+│   └── sonar-project.properties    ✅ project key, org, source/test paths, coverage
+├── .github/
+│   └── workflows/
+│       └── phase-2-sonarqube.yml   ✅ 3 jobs: test+coverage → sonarcloud scan → summary
+```
+
+## Implementation status
+
+| Item | Status |
+|------|--------|
+| All files created | ✅ Done |
+| SonarCloud account + project setup | ⏳ Manual step required |
+| `SONAR_TOKEN` added to GitHub secrets | ⏳ Manual step required |
+| Pipeline run validated | ⏳ Pending push + SonarCloud setup |
+| Intentional break test | ⏳ Pending |
+
+## Manual setup steps (do these before pushing)
+
+1. Go to [sonarcloud.io](https://sonarcloud.io) and sign in with GitHub
+2. Click **+** → **Analyze new project** → select `Mhdomer/devsecops-pipeline`
+3. Choose **GitHub Actions** as the analysis method
+4. Copy the generated `SONAR_TOKEN`
+5. In your GitHub repo → **Settings → Secrets → Actions** → add `SONAR_TOKEN`
+6. Push — the pipeline will trigger automatically
+
 ## Previous phase
 
 [Phase 1 — Docker + Trivy](phase-1-docker-trivy.md)
