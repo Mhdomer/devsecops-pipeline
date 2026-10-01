@@ -42,3 +42,8 @@ trivy-results.sarif
 
 .git
 
+
+# Scanner output
+coverage.xml
+.coverage
+.scannerwork/

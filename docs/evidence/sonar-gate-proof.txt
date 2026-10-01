@@ -1,0 +1,33 @@
+==> [1/2] Clean source (expect PASS)
+Unable to find image 'python:3.11-slim' locally
+3.11-slim: Pulling from library/python
+Digest: sha256:e41613d42d4891e4930f79523f93f81bbc7632584ec65e36ab055f41a800b41e
+Status: Downloaded newer image for python:3.11-slim
+
+[notice] A new release of pip is available: 24.0 -> 26.2.1
+[notice] To update, run: pip install --upgrade pip
+20:54:34.329 INFO  QUALITY GATE STATUS: PASSED - View details on http://b2-sonar:9000/dashboard?id=Mhdomer_devsecops-pipeline
+20:54:34.428 INFO  EXECUTION SUCCESS
+
+==> [2/2] Planted findings (expect BLOCK)
+
+[notice] A new release of pip is available: 24.0 -> 26.2.1
+[notice] To update, run: pip install --upgrade pip
+20:56:11.246 ERROR QUALITY GATE STATUS: FAILED - View details on http://b2-sonar:9000/dashboard?id=Mhdomer_devsecops-pipeline
+20:56:11.323 INFO  EXECUTION FAILURE
+
+clean source:     scanner exit 0 (want 0)
+planted findings: scanner exit 3 (want non-zero)
+PROVEN: the Quality Gate passes clean code and blocks planted findings.
+
+==> Planted run: Quality Gate conditions (local SonarQube 26.9, gate 'Sonar way')
+  OK    new_coverage                     actual=100.0 threshold=LT 80
+  OK    new_duplicated_lines_density     actual=0.0 threshold=GT 3
+  ERROR new_violations                   actual=2 threshold=GT 0
+==> Findings
+  issue    line 5 python:S2068 - "SECRET_KEY" detected here, review this potentially hard-coded credential.
+  issue    line 6 python:S4507 - Make sure this debug feature is deactivated before delivering the code in production.
+  issue    line 3 python:S4502 - Make sure disabling CSRF protection is safe here.
+  issue    line 9 python:S6965 - Specify the HTTP methods this route should accept.
+  issue    line 13 python:S6965 - Specify the HTTP methods this route should accept.
+  issue    line 33 python:S8392 - Avoid binding the application to all network interfaces.
