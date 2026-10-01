@@ -12,3 +12,6 @@ sonarqube/
 zap/
 scripts/
 docs/
+.venv
+app/tests
+coverage.xml
