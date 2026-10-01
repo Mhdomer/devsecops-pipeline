@@ -36,3 +36,18 @@ def test_create_item(client):
 def test_create_item_missing_name(client):
     res = client.post("/api/items", json={})
     assert res.status_code == 400
+
+
+@pytest.mark.parametrize("path", ["/", "/health", "/api/items", "/does-not-exist"])
+def test_security_headers_on_every_response(client, path):
+    headers = client.get(path).headers
+    assert headers["X-Content-Type-Options"] == "nosniff"
+    assert headers["X-Frame-Options"] == "DENY"
+    assert "default-src 'none'" in headers["Content-Security-Policy"]
+    # Directives with no default-src fallback must be set explicitly (ZAP rule 10055)
+    for directive in ("frame-ancestors 'none'", "base-uri 'none'", "form-action 'none'"):
+        assert directive in headers["Content-Security-Policy"]
+    assert headers["Permissions-Policy"]
+    assert headers["Cross-Origin-Resource-Policy"] == "same-origin"
+    assert headers["Referrer-Policy"] == "no-referrer"
+    assert headers["Cache-Control"] == "no-store"

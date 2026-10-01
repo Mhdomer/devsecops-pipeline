@@ -2,11 +2,30 @@ from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
-@app.route("/")
+# Sent on every response, including errors. This is a JSON-only API, so the
+# CSP allows nothing to load and nothing to frame it. ZAP's baseline scan
+# (Phase 3) fails the pipeline if these go missing.
+SECURITY_HEADERS = {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Content-Security-Policy": "default-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+    "Permissions-Policy": "camera=(), geolocation=(), microphone=()",
+    "Cross-Origin-Resource-Policy": "same-origin",
+    "Referrer-Policy": "no-referrer",
+    "Cache-Control": "no-store",
+}
+
+
+@app.after_request
+def set_security_headers(response):
+    response.headers.update(SECURITY_HEADERS)
+    return response
+
+@app.route("/", methods=["GET"])
 def index():
     return jsonify({"status": "ok", "message": "DevSecOps Demo API"})
 
-@app.route("/health")
+@app.route("/health", methods=["GET"])
 def health():
     return jsonify({"status": "healthy"})
 
@@ -26,4 +45,5 @@ def create_item():
     return jsonify({"id": 3, "name": data["name"]}), 201
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    # Local dev server only. The container runs gunicorn (see Dockerfile).
+    app.run(host="127.0.0.1", port=5000)
