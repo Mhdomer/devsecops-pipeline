@@ -4,3 +4,5 @@ Dockerfile* text eol=lf
 *.yml text eol=lf
 *.tf text eol=lf
 *.patch text eol=lf
+*.tftpl text eol=lf
+*.hcl text eol=lf
