@@ -1,0 +1,13 @@
+diff --git a/app/app.py b/app/app.py
+index 0b66d06..bfd9e1d 100644
+--- a/app/app.py
++++ b/app/app.py
+@@ -18,7 +18,7 @@ SECURITY_HEADERS = {
+ 
+ @app.after_request
+ def set_security_headers(response):
+-    response.headers.update(SECURITY_HEADERS)
++    # DELIBERATE DAST FINDING: headers removed by scripts/prove-zap-gate.sh, then restored.
+     return response
+ 
+ @app.route("/", methods=["GET"])

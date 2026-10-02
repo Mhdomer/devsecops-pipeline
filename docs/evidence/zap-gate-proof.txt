@@ -1,0 +1,36 @@
+==> Building real image (devsecops-demo:zap-good)
+==> Building image with security headers removed (devsecops-demo:zap-bad)
+
+==> [1/2] Real app (expect PASS)
+==> ZAP baseline scan against http://zap-target:5000
+Using the Automation Framework
+WARN-NEW: Non-Storable Content [10049] x 3 
+FAIL-NEW: 0	FAIL-INPROG: 0	WARN-NEW: 1	WARN-INPROG: 0	INFO: 0	IGNORE: 0	PASS: 66
+
+==> DAST gate
+ZAP gate: 1 alert type(s), 0 blocking
+  warn  [10049] Info   Non-Storable Content (x3)
+PASSED: no High-risk alerts, no FAIL-listed rules triggered.
+
+==> [2/2] Headers removed (expect BLOCK)
+==> ZAP baseline scan against http://zap-target:5000
+Using the Automation Framework
+WARN-NEW: Storable and Cacheable Content [10049] x 3 
+FAIL-NEW: X-Content-Type-Options Header Missing [10021] x 1 
+FAIL-NEW: Content Security Policy (CSP) Header Not Set [10038] x 1 
+FAIL-NEW: Permissions Policy Header Not Set [10063] x 2 
+FAIL-NEW: Cross-Origin-Resource-Policy Header Missing or Invalid [90004] x 1 
+FAIL-NEW: 4	FAIL-INPROG: 0	WARN-NEW: 1	WARN-INPROG: 0	INFO: 0	IGNORE: 0	PASS: 62
+
+==> DAST gate
+ZAP gate: 5 alert type(s), 4 blocking
+  BLOCK [10038] Medium Content Security Policy (CSP) Header Not Set (x1)
+  BLOCK [90004] Low    Cross-Origin-Resource-Policy Header Missing or Invalid (x1)
+  BLOCK [10063] Low    Permissions Policy Header Not Set (x2)
+  BLOCK [10021] Low    X-Content-Type-Options Header Missing (x1)
+  warn  [10049] Info   Storable and Cacheable Content (x3)
+BLOCKED: High-risk alert or FAIL-listed rule triggered.
+
+real app:        gate exit 0 (want 0)
+headers removed: gate exit 1 (want 1)
+PROVEN: the DAST gate passes the hardened app and blocks the unhardened one.

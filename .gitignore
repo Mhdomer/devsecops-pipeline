@@ -47,3 +47,5 @@ trivy-results.sarif
 coverage.xml
 .coverage
 .scannerwork/
+zap-out/
+zap-report.json
