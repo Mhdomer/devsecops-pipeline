@@ -6,8 +6,8 @@ on:
   pull_request:
     branches: [main]
 
-permissions:
-  contents: read
+# No permissions by default; each job asks for exactly what it needs.
+permissions: {}
 
 env:
   IMAGE_NAME: devsecops-demo
@@ -22,6 +22,8 @@ jobs:
   zap-scan:
     name: "SECURITY GATE: OWASP ZAP"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -69,6 +71,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [zap-scan]
     if: always()
+    permissions: {}
+    env:
+      ZAP_RESULT: ${{ needs.zap-scan.result }}
     steps:
       - name: Gate result
         run: |
@@ -76,10 +81,10 @@ jobs:
             echo "## Phase 3 Gate Results"
             echo "| Gate | Result |"
             echo "|------|--------|"
-            echo "| OWASP ZAP DAST | ${{ needs.zap-scan.result }} |"
+            echo "| OWASP ZAP DAST | $ZAP_RESULT |"
           } >> "$GITHUB_STEP_SUMMARY"
 
-          if [ "${{ needs.zap-scan.result }}" != "success" ]; then
+          if [[ "$ZAP_RESULT" != "success" ]]; then
             echo "**BLOCKED:** ZAP found a High-risk alert or a FAIL-listed rule fired. Deploy prevented. See the zap-report artifact." >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi

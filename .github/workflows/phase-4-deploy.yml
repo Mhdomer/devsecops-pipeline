@@ -7,8 +7,8 @@ on:
     branches: [main]
   workflow_dispatch: # the deploy job runs only from a manual dispatch
 
-permissions:
-  contents: read
+# No permissions by default; each job asks for exactly what it needs.
+permissions: {}
 
 env:
   IMAGE_NAME: devsecops-demo
@@ -21,6 +21,8 @@ jobs:
   terraform-checks:
     name: Terraform fmt / validate / test / misconfig scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: terraform
@@ -85,7 +87,7 @@ jobs:
         run: |
           for wf in phase-1-trivy.yml phase-2-sonarqube.yml phase-3-zap.yml; do
             n=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/$wf/runs?head_sha=$GITHUB_SHA&status=success" --jq '.total_count')
-            if [ "$n" -eq 0 ]; then
+            if [[ "$n" -eq 0 ]]; then
               echo "::error::$wf has no successful run for $GITHUB_SHA. Deploy blocked."
               exit 1
             fi
@@ -140,7 +142,7 @@ jobs:
           aws ssm get-command-invocation --command-id "$cmd_id" --instance-id "$EC2_INSTANCE_ID" \
             --query '{status:Status,out:StandardOutputContent,err:StandardErrorContent}' --output json
           status=$(aws ssm get-command-invocation --command-id "$cmd_id" --instance-id "$EC2_INSTANCE_ID" --query Status --output text)
-          [ "$status" = "Success" ] || { echo "::error::Deploy command ended with status $status"; exit 1; }
+          [[ "$status" == "Success" ]] || { echo "::error::Deploy command ended with status $status"; exit 1; }
 
       - name: Smoke test from outside
         run: |
