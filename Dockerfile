@@ -5,21 +5,23 @@ FROM python:3.11-slim-trixie@sha256:e41613d42d4891e4930f79523f93f81bbc7632584ec6
 
 WORKDIR /build
 COPY app/requirements.txt .
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+# Hash-locked (app/requirements.txt is compiled from requirements.in with pip-compile
+# --generate-hashes) and wheels only: no package setup script runs during the build.
+RUN pip install --no-cache-dir --require-hashes --only-binary :all: --prefix=/install -r requirements.txt
 
 # --- final stage ---
 FROM python:3.11-slim-trixie@sha256:e41613d42d4891e4930f79523f93f81bbc7632584ec65e36ab055f41a800b41e
 
 # Apply Debian security fixes released after the base image was built, then remove
 # pip/setuptools/wheel: the app never installs anything at runtime, and their
-# vendored packages carry CVEs of their own.
+# vendored packages carry CVEs of their own. Also creates the non-root user the
+# app runs as (a container breakout lands as appuser, not root).
 RUN apt-get update \
     && apt-get upgrade -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
-    && python -m pip uninstall -y setuptools wheel pip
-
-# Run as non-root (security best practice Trivy will check for)
-RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+    && python -m pip uninstall -y setuptools wheel pip \
+    && addgroup --system appgroup \
+    && adduser --system --ingroup appgroup appuser
 
 WORKDIR /app
 
