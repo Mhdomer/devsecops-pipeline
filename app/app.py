@@ -18,7 +18,7 @@ SECURITY_HEADERS = {
 
 @app.after_request
 def set_security_headers(response):
-    response.headers.update(SECURITY_HEADERS)
+    # DELIBERATE DAST FINDING: headers removed by scripts/prove-zap-gate.sh, then restored.
     return response
 
 @app.route("/", methods=["GET"])
