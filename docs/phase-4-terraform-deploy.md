@@ -126,6 +126,27 @@ docker run -d -p 5000:5000 devsecops-demo:latest
 - [ ] `terraform destroy` tears everything down cleanly (cost control)
 - [ ] No AWS credentials hardcoded anywhere in the repo
 
+## Implementation status (2026-10-02)
+
+Built and tested offline. **No AWS calls made.** The deploy steps are in
+[aws-runbook.md](aws-runbook.md), pending account funding.
+
+Changed from the plan above:
+- **GitHub OIDC role instead of `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`.** No long-lived keys anywhere.
+- **No SSH at all**, not "SSH restricted to your IP". Shell and deploys go through SSM.
+- **CI never runs Terraform.** You apply infra from the runbook; the CI role can only push to the
+  ECR repo and run SSM on the one instance.
+- Deploy by commit SHA into an immutable ECR repo, not `:latest`.
+- State in S3 with native lockfile locking (no DynamoDB).
+
+| Item | Status |
+|------|--------|
+| `terraform validate` | ✅ |
+| `terraform test` (mock provider) | ✅ 9 passed; IMDSv1 / port 22 / wildcard IAM each make it fail |
+| `trivy config` | ✅ clean (1 documented ignore: HTTPS egress) |
+| Deploy job | ⏸ Disabled until `AWS_DEPLOY_ENABLED=true` |
+| `terraform apply`, deploy, destroy | ⏳ Pending AWS funding (runbook) |
+
 ## Previous phase
 
 [Phase 3 — OWASP ZAP DAST Gate](phase-3-owasp-zap-dast.md)

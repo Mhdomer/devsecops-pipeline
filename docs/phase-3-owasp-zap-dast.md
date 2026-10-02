@@ -132,6 +132,19 @@ def set_security_headers(response):
 - [ ] Pipeline **passes** after security headers are added to Flask app
 - [ ] ZAP HTML report readable in GitHub Actions artifacts
 
+## Implementation status
+
+| Item | Status |
+|------|--------|
+| Security headers in the app | ✅ `after_request` hook + tests |
+| Gate: High risk OR FAIL-listed rule | ✅ `zap/zap_gate.py` (unit tested) + `zap/zap-baseline.conf` |
+| Local gate proof, both ways | ✅ `scripts/prove-zap-gate.sh`: hardened exit 0, headers removed exit 1 ([evidence](evidence/zap-gate-proof.txt)) |
+| Pipeline run validated in CI | ⏳ Pending push |
+
+Built differently from the sketch above: ZAP runs from its Docker image (pinned by digest)
+through `scripts/zap-scan.sh` instead of `zaproxy/action-baseline`, so CI and local runs are
+the same command. `X-XSS-Protection` is left out: browsers removed that filter.
+
 ## Previous phase
 
 [Phase 2 — SonarQube SAST Gate](phase-2-sonarqube-sast.md)

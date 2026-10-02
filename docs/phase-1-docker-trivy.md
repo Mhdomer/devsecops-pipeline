@@ -117,9 +117,10 @@ Pipeline FAILS              Continue to next stage
 | Item | Status |
 |------|--------|
 | All files created | ✅ Done |
-| Pushed to GitHub | ⏳ Pending (daily commit) |
-| Pipeline run validated | ⏳ Pending first push |
-| Intentional break test | ⏳ Pending |
+| Why the May CI run failed | ✅ Found: `format: sarif` made the action drop the severity filter, so any CVE blocked |
+| Local gate proof, both ways | ✅ `scripts/prove-trivy-gate.sh`: real image exit 0, EOL Debian 10 image exit 1 ([evidence](evidence/trivy-gate-proof.txt)) |
+| Pipeline run validated in CI | ⏳ Pending push (2026-10-02 fixes) |
+| SARIF in GitHub Security tab | ⏳ Pending push |
 
 ## Next phase
 

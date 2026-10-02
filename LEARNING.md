@@ -81,4 +81,64 @@ reporting and blocking is the whole point of DevSecOps.
 
 ---
 
+## Session — 2026-10-02 | Phases 1–4: fix the gates, prove them, build infra offline
+
+> Written by Claude from the session. Read `docs/reviews/2026-10-02.md`, then rewrite the
+> "understand" parts in my own words. That's the part that counts in an interview.
+
+### What I built
+- Found why both May CI runs failed (details below) and fixed the workflows
+- Patched deps (gunicorn, werkzeug had HIGH CVEs), pinned the base image by digest,
+  removed pip/setuptools/wheel from the final image
+- `scripts/prove-trivy-gate.sh`, `prove-sonar-gate.sh`, `prove-zap-gate.sh`: each runs the
+  gate on a clean build and on a deliberately broken one and checks the exit codes
+- Phase 3: security headers in Flask, ZAP baseline scan + `zap/zap_gate.py`, new workflow
+- Phase 4: Terraform (EC2 t3.micro, ECR, OIDC deploy role), `terraform test` with a mocked
+  AWS provider, deploy job disabled until the account is funded
+- `docs/aws-runbook.md`: the AWS steps, cost and teardown, not run yet
+
+### What I actually understand now
+
+**Why the Trivy gate failed in May:** with `format: sarif`, trivy-action throws away the
+`severity` filter (so the SARIF report has everything). `exit-code: 1` then fires on *any*
+CVE, LOW included. The gate looked like "block on CRITICAL" but was really "block on
+anything". Fix: one table-format step that blocks on CRITICAL, one SARIF step that never blocks.
+
+**Why the SonarCloud gate failed:** `SONAR_TOKEN` was never added as a secret. The action it
+used is also deprecated.
+
+**Unfixed CVEs still need to block:** the vulnerable test image (Debian 10, end of life) only
+had 2 CRITICALs and both were `will_not_fix`. With `ignore-unfixed: true` it would have
+passed. An EOL OS gets no fixes, so "unfixed" is exactly the risk.
+
+**Sonar's quality gate only looks at new code:** "Sonar way" checks new issues, coverage on
+new code, duplication on new code. Old problems don't block. A planted bug only fails the
+gate if it lands in what Sonar counts as new code.
+
+**DAST severity vs what you actually want to enforce:** ZAP rates missing headers Low or
+Medium. A "High only" gate would never block the bare app. So the gate blocks on High *or*
+on a list of rules we've decided are mandatory (`zap/zap-baseline.conf`).
+
+**OIDC instead of access keys:** GitHub gives the job a signed token; AWS trusts it only if
+it comes from `repo:Mhdomer/devsecops-pipeline:ref:refs/heads/main`. Credentials last an hour
+and there's nothing to leak or rotate.
+
+### What confused me
+- A "blocked" result can be fake: the first vulnerable-image test exited 1 because the
+  *build* failed and there was no image to scan. The proof scripts now stop on a build error.
+- `git apply -R` failed to revert the planted Sonar patch because of CRLF line endings. Now
+  the script backs up the file and copies it back.
+
+### Questions I still have
+- The deploy job rebuilds the image, and `apt-get upgrade` can make it differ from the one
+  Phase 1 scanned. Phase 5 should build once and promote the same digest. How?
+- How do I make Phase 1–3 run as one pipeline with `needs:` (Phase 5) without losing the
+  per-gate summaries?
+
+### One thing I could explain to someone right now
+A gate you've never seen fail isn't a gate. Each one here has a script that feeds it a
+known-bad input and checks it blocks, and a known-good input and checks it passes.
+
+---
+
 *Add a new session entry each time you work on this project.*

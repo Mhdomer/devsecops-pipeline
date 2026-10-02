@@ -126,16 +126,17 @@ directly with GitHub Actions via a token.
 | Item | Status |
 |------|--------|
 | All files created | ✅ Done |
+| Why the May CI run failed | ✅ Found: `SONAR_TOKEN` never set; action deprecated (now `sonarqube-scan-action`) |
+| Local gate proof, both ways | ✅ `scripts/prove-sonar-gate.sh` on a local SonarQube 26.9: clean exit 0, planted findings exit 3 ([evidence](evidence/sonar-gate-proof.txt)) |
 | SonarCloud account + project setup | ⏳ Manual step required |
 | `SONAR_TOKEN` added to GitHub secrets | ⏳ Manual step required |
-| Pipeline run validated | ⏳ Pending push + SonarCloud setup |
-| Intentional break test | ⏳ Pending |
+| Pipeline run validated in CI | ⏳ Pending push + SonarCloud setup |
 
 ## Manual setup steps (do these before pushing)
 
 1. Go to [sonarcloud.io](https://sonarcloud.io) and sign in with GitHub
 2. Click **+** → **Analyze new project** → select `Mhdomer/devsecops-pipeline`
-3. Choose **GitHub Actions** as the analysis method
+3. Choose **GitHub Actions** as the analysis method (this also turns off Automatic Analysis; CI analysis fails while Automatic Analysis is on)
 4. Copy the generated `SONAR_TOKEN`
 5. In your GitHub repo → **Settings → Secrets → Actions** → add `SONAR_TOKEN`
 6. Push — the pipeline will trigger automatically
