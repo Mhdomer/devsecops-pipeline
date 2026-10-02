@@ -411,7 +411,7 @@ Other endpoints: `GET /`, `GET /api/items`, `POST /api/items` with `{"name": "..
 ```bash
 python -m venv .venv
 .venv/Scripts/python -m pip install -r requirements-dev.txt     # Linux/macOS: .venv/bin/python
-.venv/Scripts/python -m pytest --cov=app                        # 15 tests
+.venv/Scripts/python -m pytest --cov=app --cov=zap              # 16 tests
 ```
 
 ### 7.4 Trivy
@@ -567,6 +567,29 @@ Newest at the bottom. Each entry: what happened, why, and what it taught.
 - Found the `user_data` template wasn't covered by `.gitattributes`; a Windows checkout would
   have broken the boot script with CRLF. Fixed and verified by rendering and shellchecking it.
 - Deploy job written but disabled behind a repo variable. Runbook written, marked PENDING.
+
+### 2026-10-02 (later): SonarCloud project created, pre-push hardening
+- Mohamed imported the repo into SonarCloud. Its Automatic Analysis ran on the **old** May
+  code on GitHub (`33aba7e`): Security E, 14 issues. 6 were already fixed locally.
+- Found that GitHub's May commits differ from the local ones only by AI co-author trailers
+  (same content). A plain push will be rejected; it needs `--force-with-lease`.
+- The rest would have failed the first CI quality gate, because every line changed since
+  that baseline counts as new code and "Sonar way" allows zero new issues:
+  - pip installs without hash-locked versions or `--only-binary` (S8544, S8541). Fixed:
+    `pip-compile --generate-hashes`, every install uses `--require-hashes --only-binary :all:`.
+  - `[` instead of `[[` in scripts (S7688).
+- Pulled SonarCloud's active GitHub Actions and shell rules (local SonarQube has neither
+  analyser) and fixed what would fire: `chmod 777` for ZAP's output (now a uid-owned tar
+  copied into the container), an image artifact loaded without verification (build and scan
+  now share a job), workflow-level permissions (now per job), errors to stdout, implicit
+  function returns.
+- Widened the CI scan from `app/` to the whole repo, with three accepted findings written
+  into `sonar-project.properties` with their reasons.
+- actionlint caught that `:all: ` breaks a plain YAML scalar; both install steps would have
+  failed to parse in CI.
+- Re-proven: all three gates both ways; local SonarQube shows 0 open issues repo-wide.
+- *Lesson:* the first analysis on a hosted scanner is a different ruleset from the local one.
+  Pull its active rules and check them before the first push, not after a red run.
 
 ### Next entries expected
 - First push: CI results for all four workflows.
