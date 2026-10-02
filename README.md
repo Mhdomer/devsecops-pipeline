@@ -56,6 +56,32 @@ flowchart LR
     EC2 -->|pull with instance role| ECR
 ```
 
+## Proof: each gate blocking a bad change
+
+Each gate was tested with a draft pull request containing one deliberately broken commit.
+All three were blocked by the gate they targeted. `main` stays green.
+
+| PR | Broken on purpose | Blocked by |
+|---|---|---|
+| [#1](https://github.com/Mhdomer/devsecops-pipeline/pull/1) | Base image swapped for end-of-life Debian 10 | **Trivy**: 2 CRITICAL CVEs, exit 1 (SonarCloud also flags the root user and unlocked installs) |
+| [#2](https://github.com/Mhdomer/devsecops-pipeline/pull/2) | Hardcoded `SECRET_KEY` and `DEBUG=True` | **SonarCloud**: quality gate failed, Security Rating C on new code. Trivy and ZAP pass, because the image itself is fine |
+| [#3](https://github.com/Mhdomer/devsecops-pipeline/pull/3) | Security headers removed | **ZAP**: 4 blocking header alerts. The header unit tests fail too, so it is caught twice |
+
+**PR #1: Trivy blocks a vulnerable base image**
+
+![Trivy gate blocking PR #1](docs/images/pr1-trivy-gate-blocked.png)
+
+**PR #2: SonarCloud blocks a hardcoded secret**
+
+![SonarCloud quality gate failing on PR #2](docs/images/pr2-sonar-gate-blocked.png)
+
+**PR #3: ZAP blocks a response without security headers**
+
+![ZAP gate blocking PR #3](docs/images/pr3-zap-gate-blocked.png)
+
+The same checks can be reproduced locally with `scripts/prove-*-gate.sh`; their saved output is
+in [docs/evidence/](docs/evidence/).
+
 ## Security decisions worth knowing
 
 - **Trivy blocks unfixed CVEs too.** The test image on end-of-life Debian 10 had two
