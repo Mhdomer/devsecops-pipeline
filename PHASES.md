@@ -10,6 +10,7 @@ A production-style CI/CD pipeline with automated security gates, built on:
 - **Infra:** Terraform → AWS EC2 + ECR
 
 Each phase has its own plan doc (`docs/phase-N-*.md`) written before any code.
+Start with [docs/engineering-log.md](docs/engineering-log.md): architecture, how to run it, and the build history.
 
 ---
 
