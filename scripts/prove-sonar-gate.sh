@@ -24,7 +24,8 @@ REPO="$(pwd -W 2>/dev/null || pwd)"
 
 run_coverage() {
   docker run --rm -v "$REPO:/usr/src" -w /usr/src python:3.11-slim \
-    sh -c "pip install -q --root-user-action=ignore -r requirements-dev.txt && pytest -q --cov=app --cov-report=xml:coverage.xml" >/dev/null
+    sh -c "pip install -q --root-user-action=ignore --require-hashes --only-binary :all: -r requirements-dev.txt && pytest -q --cov=app --cov=zap --cov-report=xml:coverage.xml" >/dev/null
+  return 0
 }
 
 run_scan() {
@@ -44,13 +45,16 @@ run_scan() {
 BACKUP="$(mktemp)"
 cp app/app.py "$BACKUP"
 # Restore the exact original bytes (a reverse patch can trip over line endings).
-revert() { cp "$BACKUP" app/app.py; }
+revert() {
+  cp "$BACKUP" app/app.py
+  return 0
+}
 
 echo "==> [1/2] Clean source (expect PASS)"
 run_coverage
 set +e; run_scan; CLEAN_EXIT=$?; set -e
 
-echo ""
+echo
 echo "==> [2/2] Planted findings (expect BLOCK)"
 trap revert EXIT
 git apply "$PATCH"
@@ -58,13 +62,13 @@ run_coverage
 set +e; run_scan; BAD_EXIT=$?; set -e
 revert; trap - EXIT; rm -f "$BACKUP"
 
-echo ""
+echo
 echo "clean source:     scanner exit $CLEAN_EXIT (want 0)"
 echo "planted findings: scanner exit $BAD_EXIT (want non-zero)"
 
-if [ "$CLEAN_EXIT" -eq 0 ] && [ "$BAD_EXIT" -ne 0 ]; then
+if [[ "$CLEAN_EXIT" -eq 0 ]] && [[ "$BAD_EXIT" -ne 0 ]]; then
   echo "PROVEN: the Quality Gate passes clean code and blocks planted findings."
 else
-  echo "NOT PROVEN: the gate did not behave as expected."
+  echo "NOT PROVEN: the gate did not behave as expected." >&2
   exit 1
 fi

@@ -62,3 +62,9 @@ def test_main_exit_codes(tmp_path, fail_rules):
     assert main([str(clean), str(conf)]) == 0
     assert main([str(dirty), str(conf)]) == 1
     assert main([str(tmp_path / "missing.json"), str(conf)]) == 2
+
+
+def test_main_wrong_arguments_is_an_error():
+    from zap_gate import main
+
+    assert main([]) == 2
