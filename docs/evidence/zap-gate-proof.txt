@@ -17,14 +17,14 @@ PASSED: no High-risk alerts, no FAIL-listed rules triggered.
 Using the Automation Framework
 WARN-NEW: Storable and Cacheable Content [10049] x 3 
 FAIL-NEW: X-Content-Type-Options Header Missing [10021] x 1 
-FAIL-NEW: Content Security Policy (CSP) Header Not Set [10038] x 1 
+FAIL-NEW: Content Security Policy (CSP) Header Not Set [10038] x 2 
 FAIL-NEW: Permissions Policy Header Not Set [10063] x 2 
 FAIL-NEW: Cross-Origin-Resource-Policy Header Missing or Invalid [90004] x 1 
 FAIL-NEW: 4	FAIL-INPROG: 0	WARN-NEW: 1	WARN-INPROG: 0	INFO: 0	IGNORE: 0	PASS: 62
 
 ==> DAST gate
 ZAP gate: 5 alert type(s), 4 blocking
-  BLOCK [10038] Medium Content Security Policy (CSP) Header Not Set (x1)
+  BLOCK [10038] Medium Content Security Policy (CSP) Header Not Set (x2)
   BLOCK [90004] Low    Cross-Origin-Resource-Policy Header Missing or Invalid (x1)
   BLOCK [10063] Low    Permissions Policy Header Not Set (x2)
   BLOCK [10021] Low    X-Content-Type-Options Header Missing (x1)

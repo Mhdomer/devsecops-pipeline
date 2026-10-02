@@ -16,6 +16,7 @@ PATCH="tests/gates/zap-remove-headers.patch"
 cleanup() {
   docker rm -f zap-target >/dev/null 2>&1 || true
   docker network rm "$NET" >/dev/null 2>&1 || true
+  return 0
 }
 trap cleanup EXIT
 
@@ -31,32 +32,32 @@ cp "$BACKUP" app/app.py; rm -f "$BACKUP"
 
 docker network create "$NET" >/dev/null
 
-scan() {   # $1 image, $2 out dir; prints gate output, returns the gate's exit code
+scan() {   # prints gate output, returns the gate's exit code
+  local image="$1" out_dir="$2" rc=0
   docker rm -f zap-target >/dev/null 2>&1 || true
-  docker run -d --name zap-target --network "$NET" "$1" >/dev/null
+  docker run -d --name zap-target --network "$NET" "$image" >/dev/null
   for _ in $(seq 1 30); do
     docker exec zap-target python -c "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')" 2>/dev/null && break
     sleep 1
   done
-  local rc=0
-  TARGET=http://zap-target:5000 ZAP_NETWORK="$NET" OUT_DIR="$2" bash scripts/zap-scan.sh || rc=$?
+  TARGET=http://zap-target:5000 ZAP_NETWORK="$NET" OUT_DIR="$out_dir" bash scripts/zap-scan.sh || rc=$?
   return "$rc"
 }
 
-echo ""
+echo
 echo "==> [1/2] Real app (expect PASS)"
 GOOD_EXIT=0; scan "$GOOD" zap-out/good || GOOD_EXIT=$?
-echo ""
+echo
 echo "==> [2/2] Headers removed (expect BLOCK)"
 BAD_EXIT=0; scan "$BAD" zap-out/bad || BAD_EXIT=$?
 
-echo ""
+echo
 echo "real app:        gate exit $GOOD_EXIT (want 0)"
 echo "headers removed: gate exit $BAD_EXIT (want 1)"
 
-if [ "$GOOD_EXIT" -eq 0 ] && [ "$BAD_EXIT" -eq 1 ]; then
+if [[ "$GOOD_EXIT" -eq 0 ]] && [[ "$BAD_EXIT" -eq 1 ]]; then
   echo "PROVEN: the DAST gate passes the hardened app and blocks the unhardened one."
 else
-  echo "NOT PROVEN: the gate did not behave as expected."
+  echo "NOT PROVEN: the gate did not behave as expected." >&2
   exit 1
 fi

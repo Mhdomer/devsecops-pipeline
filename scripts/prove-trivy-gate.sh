@@ -16,24 +16,24 @@ docker build -q -t "$GOOD" . >/dev/null
 echo "==> Building deliberately vulnerable image ($BAD)"
 docker build -q -f tests/gates/Dockerfile.vulnerable -t "$BAD" . >/dev/null
 
-echo ""
+echo
 echo "==> [1/2] Gate on real image (expect PASS)"
 set +e
 "${TRIVY_GATE[@]}" "$GOOD"
 GOOD_EXIT=$?
-echo ""
+echo
 echo "==> [2/2] Gate on vulnerable image (expect BLOCK)"
 "${TRIVY_GATE[@]}" "$BAD"
 BAD_EXIT=$?
 set -e
 
-echo ""
+echo
 echo "real image:       trivy exit $GOOD_EXIT (want 0)"
 echo "vulnerable image: trivy exit $BAD_EXIT (want 1)"
 
-if [ "$GOOD_EXIT" -eq 0 ] && [ "$BAD_EXIT" -eq 1 ]; then
+if [[ "$GOOD_EXIT" -eq 0 ]] && [[ "$BAD_EXIT" -eq 1 ]]; then
   echo "PROVEN: the gate passes a clean image and blocks a vulnerable one."
 else
-  echo "NOT PROVEN: the gate did not behave as expected."
+  echo "NOT PROVEN: the gate did not behave as expected." >&2
   exit 1
 fi
