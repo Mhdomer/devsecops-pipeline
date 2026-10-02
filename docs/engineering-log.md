@@ -591,6 +591,19 @@ Newest at the bottom. Each entry: what happened, why, and what it taught.
 - *Lesson:* the first analysis on a hosted scanner is a different ruleset from the local one.
   Pull its active rules and check them before the first push, not after a red run.
 
+### 2026-10-02: First green CI run
+- Mohamed set `SONAR_TOKEN`, switched SonarCloud to CI analysis and force-pushed (with lease)
+  the clean history. Commit `2931a4d`: 10 checks passed, deploy skipped as designed.
+- Verified in the logs, not just the badges: SonarCloud waited for the gate (`PASSED`, coverage
+  100%, Python/Docker/Terraform analysed); Trivy SARIF uploaded (44 high, 0 critical, same as
+  local); ZAP 0 blocking with the report artifact; Terraform 9/9. No AI trailers left on
+  `origin/main`. Dependabot ran and found nothing to update.
+- SonarCloud's taint analysis (not available locally) found 2 path-traversal issues in
+  `zap_gate.py` (S8707), rating C overall. The gate passed because they weren't counted as new
+  code. Fixed by confining CLI paths to the working directory, without suppressing the rule,
+  so the next run shows whether the fix satisfies it.
+- Prepared `gate-test/{trivy,sonar,zap}-block` branches so CI can show each gate blocking.
+
 ### Next entries expected
 - First push: CI results for all four workflows.
 - SonarCloud setup and first quality gate in CI.

@@ -119,8 +119,9 @@ Pipeline FAILS              Continue to next stage
 | All files created | ✅ Done |
 | Why the May CI run failed | ✅ Found: `format: sarif` made the action drop the severity filter, so any CVE blocked |
 | Local gate proof, both ways | ✅ `scripts/prove-trivy-gate.sh`: real image exit 0, EOL Debian 10 image exit 1 ([evidence](evidence/trivy-gate-proof.txt)) |
-| Pipeline run validated in CI | ⏳ Pending push (2026-10-02 fixes) |
-| SARIF in GitHub Security tab | ⏳ Pending push |
+| Pipeline run validated in CI | ✅ Run 36976125892 (commit `2931a4d`), gate passed |
+| SARIF in GitHub Security tab | ✅ 44 high / 57 medium / 60 low, 0 critical (matches local scan) |
+| Gate blocking in CI | ⏳ Draft PR from `gate-test/trivy-block` |
 
 ## Next phase
 
