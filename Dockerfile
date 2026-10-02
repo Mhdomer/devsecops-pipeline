@@ -1,38 +1,11 @@
-# Multi-stage build — keeps the final image lean
-# Base image pinned by digest so every build (and every Trivy scan) sees the same layers.
-# Dependabot (.github/dependabot.yml) opens a PR when the digest moves.
-FROM python:3.11-slim-trixie@sha256:e41613d42d4891e4930f79523f93f81bbc7632584ec65e36ab055f41a800b41e AS builder
-
-WORKDIR /build
-COPY app/requirements.txt .
-# Hash-locked (app/requirements.txt is compiled from requirements.in with pip-compile
-# --generate-hashes) and wheels only: no package setup script runs during the build.
-RUN pip install --no-cache-dir --require-hashes --only-binary :all: --prefix=/install -r requirements.txt
-
-# --- final stage ---
-FROM python:3.11-slim-trixie@sha256:e41613d42d4891e4930f79523f93f81bbc7632584ec65e36ab055f41a800b41e
-
-# Apply Debian security fixes released after the base image was built, then remove
-# pip/setuptools/wheel: the app never installs anything at runtime, and their
-# vendored packages carry CVEs of their own. Also creates the non-root user the
-# app runs as (a container breakout lands as appuser, not root).
-RUN apt-get update \
-    && apt-get upgrade -y --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/* \
-    && python -m pip uninstall -y setuptools wheel pip \
-    && addgroup --system appgroup \
-    && adduser --system --ingroup appgroup appuser
+# DELIBERATELY VULNERABLE: used only to prove the Trivy gate blocks.
+# Debian 10 (buster) is end-of-life and carries many CRITICAL CVEs, and the
+# dependency pins are the ones the app shipped with in May 2026.
+# Never deploy this image. scripts/prove-trivy-gate.sh builds and scans it.
+FROM python:3.8-slim-buster
 
 WORKDIR /app
-
-COPY --from=builder /install /usr/local
+RUN pip install --no-cache-dir flask==2.3.3 gunicorn==21.2.0 werkzeug==2.3.7
 COPY app/ .
 
-USER appuser
-
-EXPOSE 5000
-
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"
-
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
