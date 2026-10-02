@@ -49,3 +49,4 @@ coverage.xml
 .scannerwork/
 zap-out/
 zap-report.json
+terraform/backend.hcl

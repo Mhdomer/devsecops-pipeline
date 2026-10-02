@@ -1,0 +1,31 @@
+#!/bin/bash
+# First boot: install Docker and the deploy script. No container runs yet;
+# CI's deploy job calls deploy-app over SSM Run Command with the commit SHA.
+set -euo pipefail
+
+dnf install -y docker
+systemctl enable --now docker
+
+cat > /usr/local/bin/deploy-app <<'SCRIPT'
+#!/bin/bash
+# Usage: deploy-app <image-tag>   (CI passes the 40-char commit SHA)
+set -euo pipefail
+TAG="$${1:?usage: deploy-app <image-tag>}"
+# The tag arrives over SSM from CI: accept only a commit SHA, nothing a shell could interpret.
+[[ "$TAG" =~ ^[0-9a-f]{40}$ ]] || { echo "refusing tag: $TAG" >&2; exit 2; }
+
+aws ecr get-login-password --region ${region} \
+  | docker login --username AWS --password-stdin ${registry}
+docker pull "${repo_url}:$TAG"
+docker rm -f app 2>/dev/null || true
+docker run -d --name app --restart unless-stopped -p ${app_port}:${app_port} "${repo_url}:$TAG"
+
+for _ in $(seq 1 30); do
+  curl -fs "http://localhost:${app_port}/health" && exit 0
+  sleep 1
+done
+echo "app did not become healthy" >&2
+docker logs app >&2
+exit 1
+SCRIPT
+chmod 755 /usr/local/bin/deploy-app
