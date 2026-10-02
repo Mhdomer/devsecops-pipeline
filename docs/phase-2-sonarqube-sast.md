@@ -130,7 +130,7 @@ directly with GitHub Actions via a token.
 | Local gate proof, both ways | ✅ `scripts/prove-sonar-gate.sh` on a local SonarQube 26.9: clean exit 0, planted findings exit 3 ([evidence](evidence/sonar-gate-proof.txt)) |
 | SonarCloud project + `SONAR_TOKEN` | ✅ Set up 2026-10-02, analysis method GitHub Actions |
 | Pipeline run validated in CI | ✅ Run 36976125799, `QUALITY GATE STATUS: PASSED`, coverage 100% |
-| Gate blocking in CI | ⏳ Draft PR from `gate-test/sonar-block` |
+| Gate blocking in CI | ✅ PR #2: `QUALITY GATE STATUS: FAILED`, new_security_rating C (S2068 hardcoded secret, S4507 debug) |
 
 ## Manual setup steps (do these before pushing)
 

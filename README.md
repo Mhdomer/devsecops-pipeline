@@ -80,7 +80,7 @@ All decisions with their alternatives: [docs/engineering-log.md](docs/engineerin
 
 | | |
 |---|---|
-| Trivy, SonarCloud, ZAP gates | ✅ Passing in CI, proven to block locally |
+| Trivy, SonarCloud, ZAP gates | ✅ Pass on `main` and proven to block in CI (draft PRs #1 to #3) |
 | Terraform | ✅ `validate`, 9 `terraform test` runs (mocked provider), misconfig scan clean |
 | AWS deploy | ⏸ Written and tested offline, waiting for the AWS account to be funded ([runbook](docs/aws-runbook.md)) |
 | Single unified pipeline | 🔲 Phase 5 |

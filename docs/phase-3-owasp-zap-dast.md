@@ -140,7 +140,7 @@ def set_security_headers(response):
 | Gate: High risk OR FAIL-listed rule | ✅ `zap/zap_gate.py` (unit tested) + `zap/zap-baseline.conf` |
 | Local gate proof, both ways | ✅ `scripts/prove-zap-gate.sh`: hardened exit 0, headers removed exit 1 ([evidence](evidence/zap-gate-proof.txt)) |
 | Pipeline run validated in CI | ✅ Run 36976125945, 0 blocking alerts, `zap-report` artifact uploaded |
-| Gate blocking in CI | ⏳ Draft PR from `gate-test/zap-block` |
+| Gate blocking in CI | ✅ PR #3: 4 blocking alerts (10038, 90004, 10063, 10021), exit 1 |
 
 Built differently from the sketch above: ZAP runs from its Docker image (pinned by digest)
 through `scripts/zap-scan.sh` instead of `zaproxy/action-baseline`, so CI and local runs are

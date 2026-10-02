@@ -604,6 +604,18 @@ Newest at the bottom. Each entry: what happened, why, and what it taught.
   so the next run shows whether the fix satisfies it.
 - Prepared `gate-test/{trivy,sonar,zap}-block` branches so CI can show each gate blocking.
 
+### 2026-10-02: Every gate proven to block in CI
+- Three draft PRs, one deliberately broken commit each. All failed for the intended reason:
+  - **#1 Trivy** (`Dockerfile` swapped for EOL Debian 10): `Total: 2 (CRITICAL: 2)`, exit 1.
+    SonarCloud also failed it (root user S6471, unhashed pip S8541), which is correct.
+  - **#2 SonarCloud** (hardcoded `SECRET_KEY`, `DEBUG=True`): quality gate `FAILED`,
+    new_security_rating C. Trivy and ZAP passed, as they should: the image itself is fine.
+  - **#3 ZAP** (security headers removed): 4 blocking alerts, exit 1. The header unit tests
+    failed in Phases 1 and 2 as well, so the problem is caught twice.
+- `main` after the `zap_gate` path fix: SonarCloud security rating back to A, 0 vulnerabilities,
+  coverage 100%.
+- Phases 1 to 3 marked ✅.
+
 ### Next entries expected
 - First push: CI results for all four workflows.
 - SonarCloud setup and first quality gate in CI.

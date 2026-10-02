@@ -121,7 +121,7 @@ Pipeline FAILS              Continue to next stage
 | Local gate proof, both ways | ✅ `scripts/prove-trivy-gate.sh`: real image exit 0, EOL Debian 10 image exit 1 ([evidence](evidence/trivy-gate-proof.txt)) |
 | Pipeline run validated in CI | ✅ Run 36976125892 (commit `2931a4d`), gate passed |
 | SARIF in GitHub Security tab | ✅ 44 high / 57 medium / 60 low, 0 critical (matches local scan) |
-| Gate blocking in CI | ⏳ Draft PR from `gate-test/trivy-block` |
+| Gate blocking in CI | ✅ PR #1 (EOL Debian 10): `Total: 2 (CRITICAL: 2)`, exit 1 |
 
 ## Next phase
 
