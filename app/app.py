@@ -1,6 +1,10 @@
 from flask import Flask, jsonify, request
 
 app = Flask(__name__)
+# DELIBERATE SAST FINDINGS: applied only by scripts/prove-sonar-gate.sh, then reverted.
+app.config["SECRET_KEY"] = "dev-secret-key-123"
+app.config["DEBUG"] = True
+ADMIN_PASSWORD = "admin123"
 
 # Sent on every response, including errors. This is a JSON-only API, so the
 # CSP allows nothing to load and nothing to frame it. ZAP's baseline scan
