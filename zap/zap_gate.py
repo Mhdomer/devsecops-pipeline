@@ -4,16 +4,31 @@ Blocks when either is true:
   * any alert has risk High (riskcode 3), whichever rule raised it
   * any alert comes from a rule marked FAIL in the rules file
 
-Exit codes: 0 pass, 1 blocked, 2 report or rules file missing/unreadable.
+Exit codes: 0 pass, 1 blocked, 2 report or rules file missing/unreadable, or
+outside the working directory.
 
 Usage: python zap/zap_gate.py <zap-report.json> <zap-baseline.conf>
 """
 import json
+import os
 import sys
 from pathlib import Path
 
 HIGH = 3
 RISK_NAMES = {0: "Info", 1: "Low", 2: "Medium", 3: "High"}
+
+
+def confined_path(raw):
+    """Resolve a CLI path and refuse anything outside the working directory.
+
+    The gate only ever reads files the scan just wrote inside the checkout, so a
+    path that resolves elsewhere (absolute, or ../ traversal) is an error.
+    """
+    base = os.path.normcase(str(Path.cwd().resolve()))
+    resolved = Path(raw).resolve()
+    if os.path.commonpath([base, os.path.normcase(str(resolved))]) != base:
+        raise ValueError(f"{raw} is outside the working directory")
+    return resolved
 
 
 def load_fail_rules(conf_path):
@@ -45,8 +60,8 @@ def main(argv):
         print(__doc__)
         return 2
     try:
-        report = json.loads(Path(argv[0]).read_text(encoding="utf-8"))
-        fail_rules = load_fail_rules(argv[1])
+        report = json.loads(confined_path(argv[0]).read_text(encoding="utf-8"))
+        fail_rules = load_fail_rules(confined_path(argv[1]))
     except (OSError, ValueError) as err:
         print(f"ZAP gate: cannot read input: {err}")
         return 2

@@ -49,8 +49,10 @@ def test_high_risk_alert_blocks_even_when_not_on_fail_list(fail_rules):
     assert [b["pluginid"] for b in blocking] == ["10097"]
 
 
-def test_main_exit_codes(tmp_path, fail_rules):
+def test_main_exit_codes(tmp_path, monkeypatch, fail_rules):
     from zap_gate import main
+
+    monkeypatch.chdir(tmp_path)  # inputs must sit under the working directory
 
     conf = tmp_path / "zap.conf"
     conf.write_text(CONF)
@@ -68,3 +70,18 @@ def test_main_wrong_arguments_is_an_error():
     from zap_gate import main
 
     assert main([]) == 2
+
+
+def test_main_refuses_paths_outside_working_directory(tmp_path, monkeypatch):
+    from zap_gate import main
+
+    outside = tmp_path / "outside.json"
+    outside.write_text(json.dumps(report()))
+    conf = tmp_path / "zap.conf"
+    conf.write_text(CONF)
+    work = tmp_path / "work"
+    work.mkdir()
+    monkeypatch.chdir(work)
+
+    assert main([str(outside), str(conf)]) == 2
+    assert main(["../outside.json", "../zap.conf"]) == 2
