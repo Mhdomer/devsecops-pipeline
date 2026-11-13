@@ -1,7 +1,7 @@
 # Multi-stage build — keeps the final image lean
 # Base image pinned by digest so every build (and every Trivy scan) sees the same layers.
 # Dependabot (.github/dependabot.yml) opens a PR when the digest moves.
-FROM python:3.11-slim-trixie@sha256:e41613d42d4891e4930f79523f93f81bbc7632584ec65e36ab055f41a800b41e AS builder
+FROM python:3.15-slim-trixie@sha256:65a65fc7b30b06cb6df4930fd4650697cb23f4c2698ab81fc87e4b031bc36928 AS builder
 
 WORKDIR /build
 COPY app/requirements.txt .
@@ -10,7 +10,7 @@ COPY app/requirements.txt .
 RUN pip install --no-cache-dir --require-hashes --only-binary :all: --prefix=/install -r requirements.txt
 
 # --- final stage ---
-FROM python:3.11-slim-trixie@sha256:e41613d42d4891e4930f79523f93f81bbc7632584ec65e36ab055f41a800b41e
+FROM python:3.15-slim-trixie@sha256:65a65fc7b30b06cb6df4930fd4650697cb23f4c2698ab81fc87e4b031bc36928
 
 # Apply Debian security fixes released after the base image was built, then remove
 # pip/setuptools/wheel: the app never installs anything at runtime, and their
